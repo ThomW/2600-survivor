@@ -1,0 +1,82 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>2600 Survivor</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, minimal-ui" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+<meta name="HandheldFriendly" content="true" />
+<meta name="mobile-web-app-capable" content="yes" />
+<link rel="apple-touch-icon" href="img/touch-icon.png"/>
+<meta property="og:url" content="./">
+<meta property="og:title" content="2600 Survivor">
+<meta property="og:image" content="./img/og.png">
+<meta property="og:image:width" content="526">
+<meta property="og:image:height" content="275">
+<style type="text/css">
+body {
+   width: 1000px;
+   margin: 0 auto;
+   background: transparent url('img/tv.png') 50% 0 no-repeat;
+   font-family: Arial, Helvetica, sans-serif;
+}
+#phaser-game {
+   width: 800px;
+   height: 600px;
+   margin-top: 90px;
+   margin-left: -10px;
+}
+
+@media only screen and (max-width: 800px) {
+
+   /* auto-scale the page and hide the background image */
+   body {
+      width: auto;
+      background-image: url(img/tv-mobile.jpg);
+      background-size: cover;
+   }
+   #phaser-game {
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+   }
+   /* fill the screen, keeping width x height at 800x600 aspect ratio */
+   canvas {
+      margin: 0 auto;
+      width: 75% !important;
+      height: 100% !important;
+   }
+}
+
+#landscape-warning {
+   display: none;
+   padding: 50px 20px 20px 20px;
+   text-align: center;
+}
+@media only screen and (orientation:portrait) {
+   body { background-image: url(); }
+   #landscape-warning { display: block; }
+   #phaser-game { display: none; }
+}
+</style>
+<script src="phaser.js" type="text/javascript"></script>
+<script src="tank.js" type="text/javascript"></script>
+<script src="bullet.js" type="text/javascript"></script>
+<script src="dot.js" type="text/javascript"></script>
+<script src="p-ghost.js" type="text/javascript"></script>
+<script src="game.js" type="text/javascript"></script>
+</head>
+<body>
+   <div id="landscape-warning">
+      <h1>Your phone must be in landscape orientation to play the game</h1>
+      <img src="img/rotate-phone.png" />
+   </div>
+   
+   <div id="phaser-game"></div>
+
+</body>
+</html>
