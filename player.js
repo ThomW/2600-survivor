@@ -25,7 +25,7 @@ class Player extends Phaser.Physics.Arcade.Image
 
       this.bullets = game.physics.add.group({
         classType: Bullet,
-        maxSize: 30,
+        maxSize: 1000,
         runChildUpdate: true
       });
 

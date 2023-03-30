@@ -13,6 +13,8 @@ var Enemy = new Phaser.Class({
 
         this.speed = 90;
 
+        this.spriteRotates = false;
+
         // Calculate spawn point of new enemy along the edges of the screen
         var halfWidth = (this.scene.cameras.main.width * 0.5) + 20;
         var playerX = this.scene.player.x;
@@ -50,8 +52,12 @@ var Enemy = new Phaser.Class({
     {
       radians = Phaser.Math.Angle.Between(this.x, this.y, this.scene.player.body.x, this.scene.player.body.y);
       degrees = radians * (180 / Math.PI);
-      
-      this.rotation = radians;
+
+      if (this.spriteRotates) {
+        this.rotation = radians;
+      } else {
+        this.flipX = Math.abs(degrees) > 90;
+      }
       
       this.scene.physics.velocityFromAngle(degrees,
         this.speed,

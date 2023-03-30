@@ -9,7 +9,8 @@ class Survivor extends Phaser.Scene
 
         this.sounds = [];
 
-        this.level = 2;
+        this.level = null;
+        this.levelText = null;
 
         this.points = 0;
         this.targetPoints = 10;
@@ -42,6 +43,16 @@ class Survivor extends Phaser.Scene
         this.load.audio('pm-dot-hit', 'audio/pm-dot.wav');
 
         this.load.plugin('rexhorrifipipelineplugin', 'lib/rexhorrifipipelineplugin.min.js', true);
+
+        for (var n = 1; n <= 10; n++) {
+          this.load.image('background-' + n, 'img/background-' + n + '.png');
+        }
+
+        for (var n = 1; n <= 3; n++) {
+          this.load.image('rock-' + n, 'img/rock-' + n + '.png');
+        }
+
+
     }
 
     create ()
@@ -87,12 +98,19 @@ class Survivor extends Phaser.Scene
           crtWidth: 4,
       });
 
+      this.background = this.add.tileSprite(400, 300, 800, 600, 'background-1');
+      this.background.setOrigin(0.5);
+      this.background.setScale(10);
+
       // Add the progress bar and keep it stationary at the top of the screen
       this.progressBar = this.add.graphics();
       this.progressBar.setScrollFactor(0);
 
       // This will probably change, but since it helps show player movement, keep it...
       this.add.bitmapText(400, 128, 'atari', '2600 SURVIVOR').setOrigin(0.5).setScale(2);
+
+      this.levelText = this.add.bitmapText(790, 22, 'atari', 'LEVEL 1').setOrigin(1, 0.5).setScale(1);
+      this.levelText.setScrollFactor(0);
 
       // Setup player
       this.player = new Player(this, 400, 300, 'tank');
@@ -121,42 +139,37 @@ class Survivor extends Phaser.Scene
       });
 
       this.planes = this.physics.add.group({
+        classType: EnemyPlane,
+        maxSize: 30,
+        runChildUpdate: true
+      });
+
+      this.ets = this.physics.add.group({
         classType: Enemy,
         maxSize: 30,
         runChildUpdate: true
       });
 
+      this.rocks = this.physics.add.group({
+        classType: EnemyRock,
+        maxSize: 30,
+        runChildUpdate: true
+      });
+
+      for (let dis of [this.pGhosts, this.tanks, this.planes, this.ets, this.rocks]) {
+
+        this.physics.add.collider(this.player.bullets, dis, null, function (bulletObj, ghostObj) {
+          this.dots.create(ghostObj, 'p-dot', 'pm-dot-hit', 1);
+          bulletObj.destroy();
+          ghostObj.destroy();
+        }, this);
+        
+      }
+
       this.dots = this.physics.add.group({
         classType: Dot,
         maxSize: 100
       });
-
-      this.physics.add.collider(this.player.bullets, this.pGhosts, null, function (bulletObj, ghostObj) {
-
-        this.dots.create(ghostObj, 'p-dot', 'pm-dot-hit', 1);
-
-        bulletObj.kill();
-        ghostObj.kill();
-
-      }, this);
-
-      this.physics.add.collider(this.player.bullets, this.tanks, null, function (bulletObj, tankObj) {
-
-        this.dots.create(tankObj, 'coin', 'pm-dot-hit', 1);
-
-        bulletObj.destroy();
-        tankObj.destroy();
-
-      }, this);
-
-      this.physics.add.collider(this.player.bullets, this.planes, null, function (proj, tgt) {
-
-        this.dots.create(tgt, 'coin', 'pm-dot-hit', 1);
-
-        proj.destroy();
-        tgt.destroy();
-
-      }, this);
 
       this.physics.add.collider(this.player, this.dots, null, function (playerObj, dotObj) {
         dotObj.kill();
@@ -193,6 +206,8 @@ class Survivor extends Phaser.Scene
       this.player.timeToFire = this.calcRange([2000, 250], this.level);
       this.player.maxSpeed = this.calcRange([100, 500], this.level);
       this.player.turningSpeed = this.calcRange([0.5, 5], this.level);
+
+      this.background.setTexture('background-' + this.level);
     }
 
     update (time, delta)
@@ -211,8 +226,11 @@ class Survivor extends Phaser.Scene
       this.progressBar.fillStyle(0x2dff2d);
       this.progressBar.fillRect(0, 0, 800 * (this.points / this.targetPoints), 48);
 
+      this.levelText.text = "LEVEL " + this.level;
+
       // Handle enemy spawning
       this.spawnCooldown -= delta;
+      
       if (this.spawnCooldown <= 0) {
 
         // Rules for the various levels
@@ -222,42 +240,61 @@ class Survivor extends Phaser.Scene
             this.spawnCooldown = 2000;
 
             var tank = this.tanks.create('tank');
+            tank.spriteRotates = true;
             tank.speed = 30;
 
             break;
 
           case 2:
-            this.spawnCooldown = 1500;
+            this.spawnCooldown = 750;
 
             var plane = this.planes.create('plane');
-            plane.speed = 30;
-
-            break;
-
-          case 3:
-            this.spawnCooldown = 100;
-            
-            // TODO: Refactor this ... 
-            let enemy = this.pGhosts.get();  
-            if (enemy)
-            {
-              enemy.spawn();
+            if (plane) {
+              plane.speed = 90;
             }
             break;
 
           case 3:
+            this.spawnCooldown = 750;
+
+            var et = this.ets.create('et');
+            if (et) {
+              et.speed = 90;
+              et.tint = Phaser.Math.RND.pick([0xABDD7D, 0xC2673F, 0xF08650, 0xF09B59])
+            }
+            break;
+
+          case 4:
+
+          this.spawnCooldown = 750;
+
+          var rock = this.rocks.create('rock');
+          if (rock) {
+            rock.speed = 90;
+            rock.setTexture(Phaser.Math.RND.pick(['rock-1', 'rock-2', 'rock-3']));
+            rock.setScale(3);
+            rock.tint = Phaser.Math.RND.pick([0xD8EA46, 0x69B7FF, 0xFC3DD8, 0xA1FA4F, 0x9FFCFD, 0xFFFD55, 0xEA3FF7, 0xFFFFFF])
+          }
+          break;
+          
+            
             break;
     
-
+          // END GAME
           default:
+
+            this.spawnCooldown = 100;
+            
+            let enemy = this.pGhosts.get();  
+            if (enemy) {
+              enemy.spawn();
+
+
+
+            }
             break;
-
         }
-        
-
       }
-
-
     }
 }
 
