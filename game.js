@@ -4,23 +4,28 @@ class Survivor extends Phaser.Scene
     constructor ()
     {
         super();
-        this.iter = 0;
-        this.crtPipeline = null;
+
+        this.player = null;
 
         this.sounds = [];
 
-        this.level = 1;
+        this.level = 2;
 
         this.points = 0;
         this.targetPoints = 10;
+
+        this.spawnCooldown = 0;
     }
 
     preload ()
     {
         this.load.bitmapFont('atari', 'fonts/8bit.png', 'fonts/8bit.xml');
 
-        this.load.image('player', 'img/player.png');
+        this.load.image('tank', 'img/tank.png');
+        this.load.image('plane', 'img/plane.png');
         this.load.image('shot', 'img/shot.png');
+
+        this.load.spritesheet('coin', 'img/coin.png', { frameWidth: 8, frameHeight: 8 });
 
         this.load.spritesheet('p-man', 'img/p-man.png', { frameWidth: 9, frameHeight: 9 });
         this.load.spritesheet('p-ghost', 'img/p-ghost.png', { frameWidth: 10, frameHeight: 10 });
@@ -41,7 +46,8 @@ class Survivor extends Phaser.Scene
 
     create ()
     {
-      // Setup for rex postFX Plugin
+      // Setup for rex postFX Plugin -- https://rexrainbow.github.io/phaser3-rex-notes/docs/site/shader-glowfilter2/
+      // Tweaker -- https://codepen.io/rexrainbow/pen/eYMjJMP 
       var postFxPlugin = this.plugins.get('rexhorrifipipelineplugin');
       var postFxPipeline = postFxPlugin.add(this.cameras.main, {
           enable: true,
@@ -89,7 +95,7 @@ class Survivor extends Phaser.Scene
       this.add.bitmapText(400, 128, 'atari', '2600 SURVIVOR').setOrigin(0.5).setScale(2);
 
       // Setup player
-      this.player = new Tank(this, 400, 300, 'player');
+      this.player = new Player(this, 400, 300, 'tank');
       this.add.existing(this.player);
       this.physics.add.existing(this.player);
       this.player.configure(this);
@@ -108,6 +114,18 @@ class Survivor extends Phaser.Scene
         runChildUpdate: true
       });
 
+      this.tanks = this.physics.add.group({
+        classType: Enemy,
+        maxSize: 30,
+        runChildUpdate: true
+      });
+
+      this.planes = this.physics.add.group({
+        classType: Enemy,
+        maxSize: 30,
+        runChildUpdate: true
+      });
+
       this.dots = this.physics.add.group({
         classType: Dot,
         maxSize: 100
@@ -122,10 +140,30 @@ class Survivor extends Phaser.Scene
 
       }, this);
 
+      this.physics.add.collider(this.player.bullets, this.tanks, null, function (bulletObj, tankObj) {
+
+        this.dots.create(tankObj, 'coin', 'pm-dot-hit', 1);
+
+        bulletObj.destroy();
+        tankObj.destroy();
+
+      }, this);
+
+      this.physics.add.collider(this.player.bullets, this.planes, null, function (proj, tgt) {
+
+        this.dots.create(tgt, 'coin', 'pm-dot-hit', 1);
+
+        proj.destroy();
+        tgt.destroy();
+
+      }, this);
+
       this.physics.add.collider(this.player, this.dots, null, function (playerObj, dotObj) {
         dotObj.kill();
       }, this);
 
+      // Game start
+      this.setLevel(1);
     }
 
     increaseScore(points) {
@@ -138,9 +176,23 @@ class Survivor extends Phaser.Scene
       }
     }
 
+    calcRange(arrRange, level) {
+      const C_MAX = 1; const C_MIN = 0;
+      
+      // Calculate percentage, treating level as being a value from 1-10
+      let pct = (level - 1) / 9;
+
+      return  (arrRange[C_MAX] - arrRange[C_MIN]) * pct + arrRange[C_MIN];
+    }
+  
     setLevel(level) {
-      this.points -= this.targetPoints;
-      this.targetPoints = this.level * 100;
+      this.level = level;
+      this.points = 0;
+      this.targetPoints = 10; // Scale with level? Yawn.
+
+      this.player.timeToFire = this.calcRange([2000, 250], this.level);
+      this.player.maxSpeed = this.calcRange([100, 500], this.level);
+      this.player.turningSpeed = this.calcRange([0.5, 5], this.level);
     }
 
     update (time, delta)
@@ -153,29 +205,58 @@ class Survivor extends Phaser.Scene
 
       this.player.update(delta, this.cursorKeys);
 
-      this.iter += 0.01;
-
       // Draw the level progress bar
       this.progressBar.fillStyle(0x2d2d2d);
       this.progressBar.fillRect(0, 0, 800, 48);
-
       this.progressBar.fillStyle(0x2dff2d);
-
-
-
-
       this.progressBar.fillRect(0, 0, 800 * (this.points / this.targetPoints), 48);
 
-      // Rules for the various levels
-      if (this.level == 1) {
+      // Handle enemy spawning
+      this.spawnCooldown -= delta;
+      if (this.spawnCooldown <= 0) {
 
-        let enemy = this.pGhosts.get();  
-        if (enemy)
-        {
-          enemy.spawn();
+        // Rules for the various levels
+        switch (this.level) {
+
+          case 1: 
+            this.spawnCooldown = 2000;
+
+            var tank = this.tanks.create('tank');
+            tank.speed = 30;
+
+            break;
+
+          case 2:
+            this.spawnCooldown = 1500;
+
+            var plane = this.planes.create('plane');
+            plane.speed = 30;
+
+            break;
+
+          case 3:
+            this.spawnCooldown = 100;
+            
+            // TODO: Refactor this ... 
+            let enemy = this.pGhosts.get();  
+            if (enemy)
+            {
+              enemy.spawn();
+            }
+            break;
+
+          case 3:
+            break;
+    
+
+          default:
+            break;
+
         }
+        
 
       }
+
 
     }
 }
@@ -191,7 +272,7 @@ const config = {
     default: 'arcade',
     arcade: {
       gravity: { y: 0 },
-      debug: true
+      debug: false
     }
   } 
 };

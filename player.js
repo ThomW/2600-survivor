@@ -1,14 +1,9 @@
 // velocityFromRotation() can be called like a plain function.
 const VelocityFromRotation = Phaser.Physics.Arcade.ArcadePhysics.prototype.velocityFromRotation;
 
-class Tank extends Phaser.Physics.Arcade.Image
+class Player extends Phaser.Physics.Arcade.Image
 {
   throttle = 0;
-
-  // The speeds are all done in ranges assuming 1-10 levels
-  turnRateRange = [0.5, 5];
-  speedRange = [10, 500];
-  firingRate = [2000, 250];
 
   maxSpeed = 0;
   turningSpeed = 0;
@@ -18,21 +13,6 @@ class Tank extends Phaser.Physics.Arcade.Image
   sounds = {};
 
   bullets;
-  
-  calcRange(arrRange, level) {
-    const C_MAX = 1; const C_MIN = 0;
-    
-    // Calculate percentage, treating level as being a value from 1-10
-    let pct = (level - 1) / 9;
-
-    return  (arrRange[C_MAX] - arrRange[C_MIN]) * pct + arrRange[C_MIN];
-  }
-
-  setLevel(level) {
-    this.timeToFire = this.calcRange(this.firingRate, level);
-    this.maxSpeed = this.calcRange(this.speedRange, level);
-    this.turningSpeed = this.calcRange(this.turnRateRange, level);
-  }
 
   configure (game)
   {
@@ -49,7 +29,7 @@ class Tank extends Phaser.Physics.Arcade.Image
         runChildUpdate: true
       });
 
-      this.setLevel(game.level);
+      this.tint = 0x0000ff;
   }
 
   setMovementSound(moveSound) {

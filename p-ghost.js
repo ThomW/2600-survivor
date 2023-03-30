@@ -24,28 +24,34 @@ var PGhost = new Phaser.Class({
 
         this.speed = 150;
 
-        this.nextMove = 0;        
+        this.nextMove = 0;
     },
 
     spawn: function ()
     {
         // Calculate spawn point of new enemy along the edges of the screen
+        var halfWidth = (this.scene.cameras.main.width * 0.5) + 20;
+        var playerX = this.scene.player.x;
+        var halfHeight = (this.scene.cameras.main.height * 0.5) + 20;
+        var playerY = this.scene.player.y;
+
         var x, y;
         var edge = Phaser.Math.Between(1, 4);
+
         if (edge in [1,3]) {
-            x = Phaser.Math.Between(0, this.scene.cameras.main.width);
+            x = Phaser.Math.Between(playerX - halfWidth, playerX + halfWidth);
             if (edge == 1) {
-                y = 0;
+                y = playerY - halfHeight;
             } else {
-                y = this.scene.cameras.main.height;
+                y = playerY + halfHeight;
             }
         } else {
             if (edge == 2) {
-                x = 0;
+                x = playerX + halfWidth;
             } else {
-                x = this.scene.cameras.main.width;
+                x = playerX - halfWidth;
             }
-            y = Phaser.Math.Between(0, this.scene.cameras.main.height);
+            y = Phaser.Math.Between(playerY - halfHeight, playerY + halfHeight);
         }
 
         this.tint = Phaser.Math.RND.pick([0xff0000, 0xeeb8ee, 0x00ffff, 0xffb852]);

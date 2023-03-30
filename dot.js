@@ -15,6 +15,8 @@ var Dot = new Phaser.Class({
 
         this.value = value;
 
+        this.setScale(2);
+
         this.setPosition(onObj.x, onObj.y);
 
         this.setActive(true);
