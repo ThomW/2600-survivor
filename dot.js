@@ -8,7 +8,7 @@ var Dot = new Phaser.Class({
     {
         Phaser.Physics.Arcade.Image.call(this, scene, 0, 0, imageKey);
 
-        this.setBlendMode(1);
+        // this.setBlendMode(1);
         this.setDepth(10);
         
         this.sound = scene.game.sound.add(soundKey);

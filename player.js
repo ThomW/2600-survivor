@@ -25,16 +25,11 @@ class Player extends Phaser.Physics.Arcade.Image
 
       this.bullets = game.physics.add.group({
         classType: Bullet,
-        maxSize: 1000,
+        maxSize: 30,
         runChildUpdate: true
       });
 
       this.tint = 0x0000ff;
-  }
-
-  setMovementSound(moveSound) {
-      this.sounds['move'] = moveSound;
-      this.sounds['move'].setLoop(true);
   }
 
   setFireSound(fireSound) {
@@ -44,8 +39,6 @@ class Player extends Phaser.Physics.Arcade.Image
   update (delta, cursorKeys)
   {
       const { left, right, up, down } = cursorKeys;
-
-      let lastThrottle = this.throttle;
 
       if (up.isDown) {
           this.throttle += 0.5 * delta;
@@ -58,13 +51,6 @@ class Player extends Phaser.Physics.Arcade.Image
       }
 
       this.throttle = Phaser.Math.Clamp(this.throttle, -this.maxSpeed, this.maxSpeed);
-
-      // Only toggle sound when motion starts or stops
-      if (this.throttle == 0 && lastThrottle != 0) {
-          this.sounds['move'].stop();
-      } else if (this.throttle != 0 && lastThrottle == 0) {
-          this.sounds['move'].play();
-      }
 
       if (left.isDown)
       {

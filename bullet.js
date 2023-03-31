@@ -8,7 +8,7 @@ var Bullet = new Phaser.Class({
     {
         Phaser.Physics.Arcade.Image.call(this, scene, 0, 0, 'shot');
 
-        this.setBlendMode(1);
+        // this.setBlendMode(1);
         this.setDepth(10);
         this.setScale(5);
 

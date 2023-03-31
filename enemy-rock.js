@@ -51,7 +51,7 @@ var EnemyRock = new Phaser.Class({
             this.body.velocity);
 
         // Wrap the planes in the screen
-        var playerX = this.scene.player.x;        
+        var playerX = this.scene.player.x;
         var sceneWidth = this.scene.cameras.main.width;
         var sceneHeight = this.scene.cameras.main.height;
         var halfWidth = sceneWidth * 0.5;

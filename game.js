@@ -44,15 +44,14 @@ class Survivor extends Phaser.Scene
 
         this.load.plugin('rexhorrifipipelineplugin', 'lib/rexhorrifipipelineplugin.min.js', true);
 
-        for (var n = 1; n <= 10; n++) {
+        for (var n = 0; n < 10; n++) {
           this.load.image('background-' + n, 'img/background-' + n + '.png');
+          this.load.audio('background-' + n, 'audio/background-' + n + '.wav');
         }
 
         for (var n = 1; n <= 3; n++) {
           this.load.image('rock-' + n, 'img/rock-' + n + '.png');
         }
-
-
     }
 
     create ()
@@ -102,6 +101,8 @@ class Survivor extends Phaser.Scene
       this.background.setOrigin(0.5);
       this.background.setScale(10);
 
+      this.backgroundSound = null;
+
       // Add the progress bar and keep it stationary at the top of the screen
       this.progressBar = this.add.graphics();
       this.progressBar.setScrollFactor(0);
@@ -118,7 +119,6 @@ class Survivor extends Phaser.Scene
       this.physics.add.existing(this.player);
       this.player.configure(this);
 
-      this.player.setMovementSound(this.sound.add('player_move'));
       this.player.setFireSound(this.sound.add('player_fire'));
 
       this.cursorKeys = this.input.keyboard.createCursorKeys();
@@ -140,7 +140,7 @@ class Survivor extends Phaser.Scene
 
       this.planes = this.physics.add.group({
         classType: EnemyPlane,
-        maxSize: 30,
+        maxSize: 10,
         runChildUpdate: true
       });
 
@@ -207,7 +207,32 @@ class Survivor extends Phaser.Scene
       this.player.maxSpeed = this.calcRange([100, 500], this.level);
       this.player.turningSpeed = this.calcRange([0.5, 5], this.level);
 
-      this.background.setTexture('background-' + this.level);
+      this.player.tint = [
+        0xffff00      // PM
+        , 0x0000ff    // TANK
+        , 0xff0000    // AIR
+        , 0xA349A4    // ET
+        , 0xffffff    // AST
+        , 0x000000    // 5
+        , 0x000000    // 6
+        , 0x000000    // 7
+        , 0x000000    // 8
+        , 0x000000    // 9
+      ][this.level % 10];
+
+      this.background.setTexture('background-' + (this.level % 10));
+
+      // Stop the current sound if one's playing
+      if (this.backgroundSound != null) {
+        this.backgroundSound.stop();
+        this.backgroundSound.destroy();
+      }
+
+      // Stay on the P-M sound if we get past level 10
+      this.backgroundSound = this.sound.add('background-' + (this.level % 10));
+      this.backgroundSound.setLoop(true);
+      this.backgroundSound.play();
+
     }
 
     update (time, delta)
@@ -234,7 +259,7 @@ class Survivor extends Phaser.Scene
       if (this.spawnCooldown <= 0) {
 
         // Rules for the various levels
-        switch (this.level) {
+        switch (this.level % 10) {
 
           case 1: 
             this.spawnCooldown = 2000;
@@ -246,6 +271,7 @@ class Survivor extends Phaser.Scene
             break;
 
           case 2:
+
             this.spawnCooldown = 750;
 
             var plane = this.planes.create('plane');
@@ -266,31 +292,27 @@ class Survivor extends Phaser.Scene
 
           case 4:
 
-          this.spawnCooldown = 750;
+            this.spawnCooldown = 750;
 
-          var rock = this.rocks.create('rock');
-          if (rock) {
-            rock.speed = 90;
-            rock.setTexture(Phaser.Math.RND.pick(['rock-1', 'rock-2', 'rock-3']));
-            rock.setScale(3);
-            rock.tint = Phaser.Math.RND.pick([0xD8EA46, 0x69B7FF, 0xFC3DD8, 0xA1FA4F, 0x9FFCFD, 0xFFFD55, 0xEA3FF7, 0xFFFFFF])
-          }
-          break;
-          
-            
+            var rock = this.rocks.create('rock');
+            if (rock) {
+              rock.speed = 90;
+              rock.setTexture(Phaser.Math.RND.pick(['rock-1', 'rock-2', 'rock-3']));
+              rock.setScale(3);
+              rock.tint = Phaser.Math.RND.pick([0xD8EA46, 0x69B7FF, 0xFC3DD8, 0xA1FA4F, 0x9FFCFD, 0xFFFD55, 0xEA3FF7, 0xFFFFFF])
+            }
             break;
     
           // END GAME
           default:
+
+            this.player.tint = 0xffff00;
 
             this.spawnCooldown = 100;
             
             let enemy = this.pGhosts.get();  
             if (enemy) {
               enemy.spawn();
-
-
-
             }
             break;
         }
