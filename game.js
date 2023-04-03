@@ -34,8 +34,11 @@ class Survivor extends Phaser.Scene
 
         this.load.spritesheet('et', 'img/et.png', { frameWidth: 32, frameHeight: 32 });
 
-        this.load.spritesheet('a-bat', 'img/a-bat.png', { frameWidth: 16, frameHeight: 16 });
-        this.load.spritesheet('a-dragon', 'img/a-dragon.png', { frameWidth: 32, frameHeight: 48 });
+        this.load.spritesheet('adv-bat', 'img/a-bat.png', { frameWidth: 16, frameHeight: 16 });
+        this.load.spritesheet('adv-dragon', 'img/a-dragon.png', { frameWidth: 10, frameHeight: 20 });
+
+        this.load.spritesheet('brz', 'img/brz.png', { frameWidth: 8, frameHeight: 8 });
+        this.load.spritesheet('brz-otto', 'img/brz-otto.png', { frameWidth: 8, frameHeight: 10 });
 
         this.load.audio('player_move', 'audio/tank-move.wav');
         this.load.audio('player_fire', 'audio/tank-fire.wav');
@@ -43,6 +46,10 @@ class Survivor extends Phaser.Scene
         this.load.audio('pm-dot-hit', 'audio/pm-dot.wav');
 
         this.load.plugin('rexhorrifipipelineplugin', 'lib/rexhorrifipipelineplugin.min.js', true);
+
+        for (var n = 0; n <= 5; n++) {
+          this.load.spritesheet('inv-' + n, 'img/inv-' + n + '.png', { frameWidth: 32, frameHeight: 32 });
+        }
 
         for (var n = 0; n < 10; n++) {
           this.load.image('background-' + n, 'img/background-' + n + '.png');
@@ -56,11 +63,12 @@ class Survivor extends Phaser.Scene
 
     create ()
     {
+      /*
       // Setup for rex postFX Plugin -- https://rexrainbow.github.io/phaser3-rex-notes/docs/site/shader-glowfilter2/
       // Tweaker -- https://codepen.io/rexrainbow/pen/eYMjJMP 
       var postFxPlugin = this.plugins.get('rexhorrifipipelineplugin');
       var postFxPipeline = postFxPlugin.add(this.cameras.main, {
-          enable: true,
+          enable: false,
 
           // Bloom
           bloomEnable: true,
@@ -96,6 +104,7 @@ class Survivor extends Phaser.Scene
           crtEnable: false,
           crtWidth: 4,
       });
+      */
 
       this.background = this.add.tileSprite(400, 300, 800, 600, 'background-1');
       this.background.setOrigin(0.5);
@@ -156,14 +165,92 @@ class Survivor extends Phaser.Scene
         runChildUpdate: true
       });
 
-      for (let dis of [this.pGhosts, this.tanks, this.planes, this.ets, this.rocks]) {
+      this.invaders = this.physics.add.group({
+        classType: Enemy,
+        maxSize: 50,
+        runChildUpdate: true
+      });
+
+      this.invaders = this.physics.add.group({
+        classType: Enemy,
+        maxSize: 50,
+        runChildUpdate: true
+      });
+
+      for (var n = 0; n <= 5; n++) {
+        this.anims.create({
+          key: 'invader-' + n + '-move',
+          frames: 'inv-' + n,
+          frameRate: 2,
+          repeat: -1
+        });
+      }
+
+      this.advDragons = this.physics.add.group({
+        classType: Enemy,
+        maxSize: 10,
+        runChildUpdate: true
+      });
+
+      this.anims.create({
+        key: 'adv-dragon-move',
+        frames: this.anims.generateFrameNumbers('adv-dragon', { frames: [ 0, 1 ] }),
+        frameRate: 2,
+        repeat: -1
+      });
+
+      this.advBats = this.physics.add.group({
+        classType: Enemy,
+        maxSize: 10,
+        runChildUpdate: true        
+      });
+      
+      for (var n = 0; n <= 5; n++) {
+        this.anims.create({
+          key: 'adv-bat-move',
+          frames: 'adv-bat',
+          frameRate: 3,
+          repeat: -1
+        });
+      }
+
+      this.brzGuys = this.physics.add.group({
+        classType: Enemy,
+        maxSize: 20,
+        runChildUpdate: true
+      });
+      
+      for (var n = 0; n <= 5; n++) {
+        this.anims.create({
+          key: 'brz-move',
+          frames: 'brz',
+          frameRate: 3,
+          repeat: -1
+        });
+      }
+
+      this.brzOtto = this.physics.add.group({
+        classType: Enemy,
+        maxSize: 1,
+        runChildUpdate: true
+      });
+      
+      for (var n = 0; n <= 5; n++) {
+        this.anims.create({
+          key: 'brz-otto-move',
+          frames: 'brz-otto',
+          frameRate: 3,
+          repeat: -1
+        });
+      }
+
+      for (let dis of [this.pGhosts, this.tanks, this.planes, this.ets, this.rocks, this.invaders, this.advDragons, this.advBats, this.brzGuys, this.brzOtto]) {
 
         this.physics.add.collider(this.player.bullets, dis, null, function (bulletObj, ghostObj) {
-          this.dots.create(ghostObj, 'p-dot', 'pm-dot-hit', 1);
+          this.dots.create(ghostObj, 'coin', 'pm-dot-hit', 1);
           bulletObj.destroy();
           ghostObj.destroy();
-        }, this);
-        
+        }, this); 
       }
 
       this.dots = this.physics.add.group({
@@ -195,7 +282,8 @@ class Survivor extends Phaser.Scene
       // Calculate percentage, treating level as being a value from 1-10
       let pct = (level - 1) / 9;
 
-      return  (arrRange[C_MAX] - arrRange[C_MIN]) * pct + arrRange[C_MIN];
+      // The .min will clamp values so they don't go over MAX
+      return  Math.min(arrRange[C_MAX], (arrRange[C_MAX] - arrRange[C_MIN]) * pct + arrRange[C_MIN]);
     }
   
     setLevel(level) {
@@ -203,19 +291,21 @@ class Survivor extends Phaser.Scene
       this.points = 0;
       this.targetPoints = 10; // Scale with level? Yawn.
 
+
+
       this.player.timeToFire = this.calcRange([2000, 250], this.level);
-      this.player.maxSpeed = this.calcRange([100, 500], this.level);
-      this.player.turningSpeed = this.calcRange([0.5, 5], this.level);
+      this.player.maxSpeed = this.calcRange([250, 500], this.level);
+      this.player.turningSpeed = this.calcRange([1, 5], this.level);
 
       this.player.tint = [
-        0xffff00      // PM
-        , 0x0000ff    // TANK
-        , 0xff0000    // AIR
-        , 0xA349A4    // ET
-        , 0xffffff    // AST
-        , 0x000000    // 5
-        , 0x000000    // 6
-        , 0x000000    // 7
+        0xffff00      // 0/10 PM
+        , 0x0000ff    // 1 TANK
+        , 0xff0000    // 2 AIR
+        , 0xA349A4    // 3 ET
+        , 0xffffff    // 4 AST
+        , 0xffffff    // 5 INV
+        , 0x000000    // 6 ADV
+        , 0xffffff    // 7 BRZ
         , 0x000000    // 8
         , 0x000000    // 9
       ][this.level % 10];
@@ -297,11 +387,71 @@ class Survivor extends Phaser.Scene
             var rock = this.rocks.create('rock');
             if (rock) {
               rock.speed = 90;
-              rock.setTexture(Phaser.Math.RND.pick(['rock-1', 'rock-2', 'rock-3']));
+              rock.setTexture(Phaser.Math.RND.pick(['rock-1', 'rock-2']));
               rock.setScale(3);
               rock.tint = Phaser.Math.RND.pick([0xD8EA46, 0x69B7FF, 0xFC3DD8, 0xA1FA4F, 0x9FFCFD, 0xFFFD55, 0xEA3FF7, 0xFFFFFF])
             }
             break;
+
+          // INV
+          case 5:
+
+            this.spawnCooldown = 250;
+
+            var invader = this.invaders.create('invader');
+            if (invader) {
+              invader.speed = 90;
+              invader.play('invader-' + Phaser.Math.Between(0, 5) + '-move');
+              invader.tint = 0xA8A51A;
+            }
+          break;
+
+          // ADV
+          case 6: {
+
+            this.spawnCooldown = 250;
+
+            let rng = Phaser.Math.RND.pick(['adv-bat', 'adv-dragon']);
+
+            var baddie = this.invaders.create(rng);
+            if (baddie) {
+              baddie.speed = 90;
+              baddie.play(rng + '-move');
+              baddie.setScale(3);
+
+              if (rng == 'adv-dragon') {
+                baddie.tint = Phaser.Math.RND.pick([0xfbf236, 0x6abe30, 0xfbf236, 0x6abe30, 0xff0000]);
+              }
+              else {
+                baddie.tint = 0x000000;
+              }
+            }
+          }
+          break;
+
+          // BZK
+          case 7: {
+
+            this.spawnCooldown = 250;
+
+            var otto = this.brzOtto.create();
+            if (otto) {
+              otto.speed = 90;
+              otto.play('brz-otto-move');
+              otto.setScale(3);
+              otto.tint = 0xffff00;
+            }
+
+            var baddie = this.brzGuys.create();
+            if (baddie) {
+              baddie.speed = 90;
+              baddie.play('brz-move');
+              baddie.setScale(3);
+              baddie.tint = 0xD2D240;
+
+            }
+          }
+          break;
     
           // END GAME
           default:
