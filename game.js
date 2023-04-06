@@ -45,6 +45,8 @@ class Survivor extends Phaser.Scene
 
         this.load.audio('pm-dot-hit', 'audio/pm-dot.wav');
 
+        // From https://rexrainbow.github.io/phaser3-rex-notes/docs/site/virtualjoystick/
+        this.load.plugin('rexvirtualjoystickplugin', 'lib/rexvirtualjoystickplugin.min.js', true);
         this.load.plugin('rexhorrifipipelineplugin', 'lib/rexhorrifipipelineplugin.min.js', true);
 
         for (var n = 0; n <= 5; n++) {
@@ -112,6 +114,21 @@ class Survivor extends Phaser.Scene
 
       this.backgroundSound = null;
 
+      if ('ontouchstart' in document.documentElement) {
+        this.joyStick = this.plugins.get('rexvirtualjoystickplugin').add(this, {
+          x: 100,
+          y: 500,
+          radius: 100,
+          base: this.add.circle(0, 0, 100, 0x888888).setAlpha(0.5),
+          thumb: this.add.circle(0, 0, 50, 0xcccccc).setAlpha(0.5),
+          // dir: '8dir',   // 'up&down'|0|'left&right'|1|'4dir'|2|'8dir'|3
+          // forceMin: 16,
+          enable: true,
+        });
+      } else {
+        this.joyStick = null;
+      }
+
       // Add the progress bar and keep it stationary at the top of the screen
       this.progressBar = this.add.graphics();
       this.progressBar.setScrollFactor(0);
@@ -133,6 +150,9 @@ class Survivor extends Phaser.Scene
       this.cursorKeys = this.input.keyboard.createCursorKeys();
 
       this.cameras.main.startFollow(this.player);
+
+      // Setup sounds that are used by multiple things...
+      this.sounds['dot-hit'] = this.sound.add('pm-dot-hit');
 
       // Setup pools for enemies
       this.pGhosts = this.physics.add.group({
@@ -246,10 +266,21 @@ class Survivor extends Phaser.Scene
 
       for (let dis of [this.pGhosts, this.tanks, this.planes, this.ets, this.rocks, this.invaders, this.advDragons, this.advBats, this.brzGuys, this.brzOtto]) {
 
-        this.physics.add.collider(this.player.bullets, dis, null, function (bulletObj, ghostObj) {
-          this.dots.create(ghostObj, 'coin', 'pm-dot-hit', 1);
-          bulletObj.destroy();
-          ghostObj.destroy();
+        this.physics.add.collider(this.player.bullets, dis, null, function (bulletObj, hitObj) {
+
+          let dot = this.dots.get();
+          if (dot) {
+            dot.setPosition(hitObj.x, hitObj.y);
+            dot.setTexture('coin');
+            dot.setScale(2);
+            dot.setSize(8, 8);
+            dot.soundKey = 'pm-dot-hit';
+            dot.value = 1;
+
+            bulletObj.destroy();
+            hitObj.destroy();
+          }
+
         }, this); 
       }
 
@@ -268,8 +299,6 @@ class Survivor extends Phaser.Scene
 
     increaseScore(points) {
       this.points += points;
-
-      console.log(this.points, this.targetPoints);
 
       if (this.points >= this.targetPoints) {
         this.setLevel(this.level + 1);
@@ -290,8 +319,6 @@ class Survivor extends Phaser.Scene
       this.level = level;
       this.points = 0;
       this.targetPoints = 10; // Scale with level? Yawn.
-
-
 
       this.player.timeToFire = this.calcRange([2000, 250], this.level);
       this.player.maxSpeed = this.calcRange([250, 500], this.level);
@@ -333,7 +360,12 @@ class Survivor extends Phaser.Scene
 
       const { scrollX, scrollY } = this.cameras.main;
 
-      this.player.update(delta, this.cursorKeys);
+      var virtualCursorKeys = null;
+      if (this.joyStick) {
+        virtualCursorKeys = this.joyStick.createCursorKeys();
+      }
+
+      this.player.update(delta, this.cursorKeys, virtualCursorKeys);
 
       // Draw the level progress bar
       this.progressBar.fillStyle(0x2d2d2d);
@@ -388,6 +420,7 @@ class Survivor extends Phaser.Scene
             if (rock) {
               rock.speed = 90;
               rock.setTexture(Phaser.Math.RND.pick(['rock-1', 'rock-2']));
+              rock.setSize(16, 16);
               rock.setScale(3);
               rock.tint = Phaser.Math.RND.pick([0xD8EA46, 0x69B7FF, 0xFC3DD8, 0xA1FA4F, 0x9FFCFD, 0xFFFD55, 0xEA3FF7, 0xFFFFFF])
             }
@@ -438,7 +471,8 @@ class Survivor extends Phaser.Scene
             if (otto) {
               otto.speed = 90;
               otto.play('brz-otto-move');
-              otto.setScale(3);
+              otto.setScale(4);
+              otto.setSize(8, 8);
               otto.tint = 0xffff00;
             }
 
@@ -446,7 +480,8 @@ class Survivor extends Phaser.Scene
             if (baddie) {
               baddie.speed = 90;
               baddie.play('brz-move');
-              baddie.setScale(3);
+              baddie.setScale(4);
+              baddie.setSize(8, 8);
               baddie.tint = 0xD2D240;
 
             }
@@ -471,7 +506,7 @@ class Survivor extends Phaser.Scene
 }
 
 const config = {
-  type: Phaser.WEBGL,
+  type: Phaser.AUTO,
   width: 800,
   height: 600,
   parent: 'phaser-game',

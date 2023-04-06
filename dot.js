@@ -11,7 +11,7 @@ var Dot = new Phaser.Class({
         // this.setBlendMode(1);
         this.setDepth(10);
         
-        this.sound = scene.game.sound.add(soundKey);
+        this.soundKey = soundKey;
 
         this.value = value;
 
@@ -27,7 +27,7 @@ var Dot = new Phaser.Class({
     {
         this.scene.increaseScore(this.value);
 
-        this.sound.play();
+        this.scene.sounds['dot-hit'].play();
     
         this.setActive(false);
         this.setVisible(false);

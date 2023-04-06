@@ -36,14 +36,14 @@ class Player extends Phaser.Physics.Arcade.Image
       this.sounds['fire'] = fireSound;
   }
 
-  update (delta, cursorKeys)
+  update (delta, cursorKeys, virtualCursorKeys)
   {
       const { left, right, up, down } = cursorKeys;
 
-      if (up.isDown) {
+      if (up.isDown || (virtualCursorKeys != null && virtualCursorKeys['up'].isDown)) {
           this.throttle += 0.5 * delta;
       }
-      else if (down.isDown) {
+      else if (down.isDown || (virtualCursorKeys != null && virtualCursorKeys['down'].isDown)) {
           this.throttle -= 0.5 * delta;
       }
       else {
@@ -52,11 +52,11 @@ class Player extends Phaser.Physics.Arcade.Image
 
       this.throttle = Phaser.Math.Clamp(this.throttle, -this.maxSpeed, this.maxSpeed);
 
-      if (left.isDown)
+      if (left.isDown || (virtualCursorKeys != null && virtualCursorKeys['left'].isDown))
       {
           this.body.rotation -= this.turningSpeed;
       }
-      else if (right.isDown)
+      else if (right.isDown || (virtualCursorKeys != null && virtualCursorKeys['right'].isDown))
       {
           this.body.rotation += this.turningSpeed;
       }
@@ -75,8 +75,7 @@ class Player extends Phaser.Physics.Arcade.Image
       if (this.nextShot <= 0) {
 
           let bullet = this.bullets.get();
-          if (bullet)
-          {
+          if (bullet) {
             bullet.fire(this);
 
             // Play the shot sound

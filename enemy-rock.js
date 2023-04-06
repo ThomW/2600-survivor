@@ -14,22 +14,22 @@ var EnemyRock = new Phaser.Class({
         this.velocity = 900;
 
         // Calculate spawn point of new enemy along the edges of the screen
-        var halfWidth = (this.scene.cameras.main.width * 0.5) + 20;
-        var playerX = this.scene.player.x;
-        var halfHeight = (this.scene.cameras.main.height * 0.5) + 20;
-        var playerY = this.scene.player.y;
+        var halfWidth = (scene.cameras.main.width * 0.5);
+        var playerX = scene.player.x;
+        var halfHeight = (scene.cameras.main.height * 0.5);
+        var playerY = scene.player.y;
 
         var x, y;
 
         // Left Spawn
-        if (Phaser.Math.Between(0, 1)) {
+        if (Phaser.Math.Between(0, 1) == 0) {
 
-            x = playerX - halfWidth;
+            x = playerX - halfWidth - 20;
             this.angle = Phaser.Math.Between(60, 120);
 
         // Right spawn
         } else {
-            x = playerX + halfWidth;
+            x = playerX + halfWidth + 20;
             this.angle = Phaser.Math.Between(240, 300);
             this.flipY = true;
         }
@@ -56,14 +56,11 @@ var EnemyRock = new Phaser.Class({
         var sceneHeight = this.scene.cameras.main.height;
         var halfWidth = sceneWidth * 0.5;
 
-        if (this.rotation == 0) {
-            if (this.x > playerX + halfWidth) {
-                this.x -= sceneWidth;
-            }
-        } else {
-            if (this.x < playerX - halfWidth) {
-                this.x += sceneWidth;
-            }
+        if (this.x > playerX + halfWidth + 30) {
+            this.x -= sceneWidth;
+        }
+        else if (this.x < playerX - halfWidth - 30) {
+            this.x += sceneWidth;
         }
 
         var playerY = this.scene.player.y;
