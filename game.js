@@ -117,10 +117,10 @@ class Survivor extends Phaser.Scene
       if ('ontouchstart' in document.documentElement) {
         this.joyStick = this.plugins.get('rexvirtualjoystickplugin').add(this, {
           x: 100,
-          y: 500,
+          y: 400,
           radius: 100,
           base: this.add.circle(0, 0, 100, 0x888888).setAlpha(0.5),
-          thumb: this.add.circle(0, 0, 50, 0xcccccc).setAlpha(0.5),
+          thumb: this.add.circle(0, 0, 50, 0xcccccc).setAlpha(0.25),
           // dir: '8dir',   // 'up&down'|0|'left&right'|1|'4dir'|2|'8dir'|3
           // forceMin: 16,
           enable: true,
