@@ -11,8 +11,6 @@ var EnemyPlane = new Phaser.Class({
         this.setDepth(10);
         this.setScale(1);
 
-        this.velocity = 900;
-
         // Calculate spawn point of new enemy along the edges of the screen
         var halfWidth = (this.scene.cameras.main.width * 0.5) + 20;
         var playerX = this.scene.player.x;
@@ -31,7 +29,11 @@ var EnemyPlane = new Phaser.Class({
         
         y = Phaser.Math.Between(playerY - halfHeight, playerY + halfHeight);
 
-        this.tint = Phaser.Math.RND.pick([0x880000, 0x008800, 0x008888 ]);
+        let colors = [ 0xff0000, 0x75FF33, 0xffff00, 0xFFBD33 ];
+        this.tint = colors[this.scene.planes.getTotalUsed() % colors.length];
+
+
+        // this.tint = Phaser.Math.RND.pick([);
 
         this.setPosition(x, y);
 
@@ -41,9 +43,8 @@ var EnemyPlane = new Phaser.Class({
 
     update: function (time, delta)
     {
-        this.scene.physics.velocityFromAngle(this.rotation * (180 / Math.PI),
-            this.speed,
-            this.body.velocity);
+        // Dead simple method to move planes
+        this.x += (this.speed / delta) * (this.rotation == 0 ? 1 : -1);
 
         // Wrap the planes in the screen
         var playerX = this.scene.player.x;        

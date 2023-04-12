@@ -154,16 +154,19 @@ class Survivor extends Phaser.Scene
       // Setup sounds that are used by multiple things...
       this.sounds['dot-hit'] = this.sound.add('pm-dot-hit');
 
+      // Create a container that contains all of the enemies in the game
+      this.enemies = this.physics.add.group();
+
       // Setup pools for enemies
       this.pGhosts = this.physics.add.group({
         classType: PGhost,
-        maxSize: 30,
+        maxSize: 10,
         runChildUpdate: true
       });
 
       this.tanks = this.physics.add.group({
         classType: Enemy,
-        maxSize: 30,
+        maxSize: 10,
         runChildUpdate: true
       });
 
@@ -175,25 +178,19 @@ class Survivor extends Phaser.Scene
 
       this.ets = this.physics.add.group({
         classType: Enemy,
-        maxSize: 30,
+        maxSize: 10,
         runChildUpdate: true
       });
 
       this.rocks = this.physics.add.group({
         classType: EnemyRock,
-        maxSize: 30,
+        maxSize: 15,
         runChildUpdate: true
       });
 
       this.invaders = this.physics.add.group({
         classType: Enemy,
-        maxSize: 50,
-        runChildUpdate: true
-      });
-
-      this.invaders = this.physics.add.group({
-        classType: Enemy,
-        maxSize: 50,
+        maxSize: 15,
         runChildUpdate: true
       });
 
@@ -236,7 +233,7 @@ class Survivor extends Phaser.Scene
 
       this.brzGuys = this.physics.add.group({
         classType: Enemy,
-        maxSize: 20,
+        maxSize: 10,
         runChildUpdate: true
       });
       
@@ -264,25 +261,24 @@ class Survivor extends Phaser.Scene
         });
       }
 
-      for (let dis of [this.pGhosts, this.tanks, this.planes, this.ets, this.rocks, this.invaders, this.advDragons, this.advBats, this.brzGuys, this.brzOtto]) {
+      this.physics.add.collider(this.player.bullets, this.enemies, null, function (bulletObj, hitObj) {
 
-        this.physics.add.collider(this.player.bullets, dis, null, function (bulletObj, hitObj) {
+        let dot = this.dots.get();
+        if (dot) {
+          dot.setPosition(hitObj.x, hitObj.y);
+          dot.setTexture('coin');
+          dot.setScale(2);
+          dot.setSize(8, 8);
+          dot.soundKey = 'pm-dot-hit';
+          dot.value = 1;
+        }
 
-          let dot = this.dots.get();
-          if (dot) {
-            dot.setPosition(hitObj.x, hitObj.y);
-            dot.setTexture('coin');
-            dot.setScale(2);
-            dot.setSize(8, 8);
-            dot.soundKey = 'pm-dot-hit';
-            dot.value = 1;
+        this.enemies.remove(hitObj);
 
-            bulletObj.destroy();
-            hitObj.destroy();
-          }
+        hitObj.destroy();
+        bulletObj.destroy();
 
-        }, this); 
-      }
+      }, this); 
 
       this.dots = this.physics.add.group({
         classType: Dot,
@@ -290,7 +286,9 @@ class Survivor extends Phaser.Scene
       });
 
       this.physics.add.collider(this.player, this.dots, null, function (playerObj, dotObj) {
+        this.dots.remove(dotObj);
         dotObj.kill();
+        dotObj.destroy();
       }, this);
 
       // Game start
@@ -342,7 +340,6 @@ class Survivor extends Phaser.Scene
       // Stop the current sound if one's playing
       if (this.backgroundSound != null) {
         this.backgroundSound.stop();
-        this.backgroundSound.destroy();
       }
 
       // Stay on the P-M sound if we get past level 10
@@ -386,9 +383,12 @@ class Survivor extends Phaser.Scene
           case 1: 
             this.spawnCooldown = 2000;
 
-            var tank = this.tanks.create('tank');
-            tank.spriteRotates = true;
-            tank.speed = 30;
+            var tank = this.tanks.get('tank');
+            if (tank) {
+              tank.spriteRotates = true;
+              tank.speed = 30;
+              this.enemies.add(tank);
+            }
 
             break;
 
@@ -396,9 +396,10 @@ class Survivor extends Phaser.Scene
 
             this.spawnCooldown = 750;
 
-            var plane = this.planes.create('plane');
+            var plane = this.planes.get('plane');
             if (plane) {
-              plane.speed = 90;
+              plane.speed = 40;
+              this.enemies.add(plane);
             }
             break;
 
@@ -408,7 +409,8 @@ class Survivor extends Phaser.Scene
             var et = this.ets.create('et');
             if (et) {
               et.speed = 90;
-              et.tint = Phaser.Math.RND.pick([0xABDD7D, 0xC2673F, 0xF08650, 0xF09B59])
+              et.tint = Phaser.Math.RND.pick([0xABDD7D, 0xC2673F, 0xF08650, 0xF09B59]);
+              this.enemies.add(et);
             }
             break;
 
@@ -422,7 +424,8 @@ class Survivor extends Phaser.Scene
               rock.setTexture(Phaser.Math.RND.pick(['rock-1', 'rock-2']));
               rock.setSize(16, 16);
               rock.setScale(3);
-              rock.tint = Phaser.Math.RND.pick([0xD8EA46, 0x69B7FF, 0xFC3DD8, 0xA1FA4F, 0x9FFCFD, 0xFFFD55, 0xEA3FF7, 0xFFFFFF])
+              rock.tint = Phaser.Math.RND.pick([0xD8EA46, 0x69B7FF, 0xFC3DD8, 0xA1FA4F, 0x9FFCFD, 0xFFFD55, 0xEA3FF7, 0xFFFFFF]);
+              this.enemies.add(rock);
             }
             break;
 
@@ -436,6 +439,7 @@ class Survivor extends Phaser.Scene
               invader.speed = 90;
               invader.play('invader-' + Phaser.Math.Between(0, 5) + '-move');
               invader.tint = 0xA8A51A;
+              this.enemies.add(invader);
             }
           break;
 
@@ -458,6 +462,8 @@ class Survivor extends Phaser.Scene
               else {
                 baddie.tint = 0x000000;
               }
+
+              this.enemies.add(baddie);
             }
           }
           break;
@@ -474,6 +480,7 @@ class Survivor extends Phaser.Scene
               otto.setScale(4);
               otto.setSize(8, 8);
               otto.tint = 0xffff00;
+              this.enemies.add(otto);
             }
 
             var baddie = this.brzGuys.create();
@@ -483,7 +490,7 @@ class Survivor extends Phaser.Scene
               baddie.setScale(4);
               baddie.setSize(8, 8);
               baddie.tint = 0xD2D240;
-
+              this.enemies.add(baddie);
             }
           }
           break;
@@ -498,6 +505,7 @@ class Survivor extends Phaser.Scene
             let enemy = this.pGhosts.get();  
             if (enemy) {
               enemy.spawn();
+              this.enemies.add(enemy);
             }
             break;
         }

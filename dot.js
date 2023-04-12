@@ -33,8 +33,6 @@ var Dot = new Phaser.Class({
         this.setVisible(false);
         
         this.body.stop();
-
-        this.destroy();
     }
 
 });
