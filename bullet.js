@@ -39,21 +39,24 @@ var Bullet = new Phaser.Class({
         this.body.velocity.y *= 2;
     },
 
-    update: function (time, delta)
-    {
-        this.lifespan -= delta;
+    update: function (time, delta) {
 
-        if (this.lifespan <= 0)
-        {
-            this.kill();
-        }
+        // Kill bullets once they hit the edge of the screen
+        var playerX = this.scene.player.x;
+        var playerY = this.scene.player.y;
+        var halfWidth = this.scene.cameras.main.width * 0.5;
+        let halfHeight = this.scene.cameras.main.height * 0.5;
+
+        if (this.x > playerX + halfWidth
+            || this.x < playerX - halfWidth
+            || this.y > playerY + halfHeight
+            || this.y < playerY - halfHeight) {
+                this.kill();
+            }
     },
-
-    kill: function ()
-    {
+    kill: function () {
         this.setActive(false);
         this.setVisible(false);
         this.body.stop();
     }
-
 });
