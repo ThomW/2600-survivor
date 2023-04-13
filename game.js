@@ -65,7 +65,6 @@ class Survivor extends Phaser.Scene
 
     create ()
     {
-      /*
       // Setup for rex postFX Plugin -- https://rexrainbow.github.io/phaser3-rex-notes/docs/site/shader-glowfilter2/
       // Tweaker -- https://codepen.io/rexrainbow/pen/eYMjJMP 
       var postFxPlugin = this.plugins.get('rexhorrifipipelineplugin');
@@ -73,7 +72,7 @@ class Survivor extends Phaser.Scene
           enable: false,
 
           // Bloom
-          bloomEnable: true,
+          bloomEnable: false,
           bloomRadius: 0.1,
           bloomIntensity: 0.9,
           bloomThreshold: 0.9,
@@ -85,28 +84,27 @@ class Survivor extends Phaser.Scene
           chabIntensity: 0.125,
 
           // Vignette
-          vignetteEnable: false,
-          vignetteStrength: 0.9,
+          vignetteEnable: true,
+          vignetteStrength: 5,
           vignetteIntensity: 0.125,
 
           // Noise
-          noiseEnable: false,
-          noiseStrength: 0.1,
+          noiseEnable: true,
+          noiseStrength: 0.05,
           // seed: 0.5,
 
           // VHS
-          vhsEnable: false,
-          vhsStrength: 0.5,
+          vhsEnable: true,
+          vhsStrength: 0.1,
 
           // Scanlines
-          scanlinesEnable: false,
+          scanlinesEnable: true,
           scanStrength: 0.125,
 
           //CRT
-          crtEnable: false,
-          crtWidth: 4,
+          crtEnable: true,
+          crtWidth: 10,
       });
-      */
 
       this.background = this.add.tileSprite(400, 300, 800, 600, 'background-1');
       this.background.setOrigin(0.5);
