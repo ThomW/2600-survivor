@@ -220,14 +220,12 @@ class Survivor extends Phaser.Scene
         runChildUpdate: true        
       });
       
-      for (var n = 0; n <= 5; n++) {
-        this.anims.create({
-          key: 'adv-bat-move',
-          frames: 'adv-bat',
-          frameRate: 3,
-          repeat: -1
-        });
-      }
+      this.anims.create({
+        key: 'adv-bat-move',
+        frames: 'adv-bat',
+        frameRate: 3,
+        repeat: -1
+      });
 
       this.brzGuys = this.physics.add.group({
         classType: Enemy,
@@ -235,14 +233,12 @@ class Survivor extends Phaser.Scene
         runChildUpdate: true
       });
       
-      for (var n = 0; n <= 5; n++) {
-        this.anims.create({
-          key: 'brz-move',
-          frames: 'brz',
-          frameRate: 3,
-          repeat: -1
-        });
-      }
+      this.anims.create({
+        key: 'brz-move',
+        frames: 'brz',
+        frameRate: 3,
+        repeat: -1
+      });
 
       this.brzOtto = this.physics.add.group({
         classType: Enemy,
@@ -250,14 +246,12 @@ class Survivor extends Phaser.Scene
         runChildUpdate: true
       });
       
-      for (var n = 0; n <= 5; n++) {
-        this.anims.create({
-          key: 'brz-otto-move',
-          frames: 'brz-otto',
-          frameRate: 3,
-          repeat: -1
-        });
-      }
+      this.anims.create({
+        key: 'brz-otto-move',
+        frames: 'brz-otto',
+        frameRate: 3,
+        repeat: -1
+      });
 
       this.physics.add.collider(this.player.bullets, this.enemies, null, function (bulletObj, hitObj) {
 
