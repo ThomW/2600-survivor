@@ -1,12 +1,12 @@
 var Dot = new Phaser.Class({
 
-    Extends: Phaser.Physics.Arcade.Image,
+    Extends: Phaser.Physics.Arcade.Sprite,
 
     initialize:
 
     function Dot (scene, onObj, imageKey, soundKey, value)
     {
-        Phaser.Physics.Arcade.Image.call(this, scene, 0, 0, imageKey);
+        Phaser.Physics.Arcade.Sprite.call(this, scene, 0, 0, imageKey);
 
         // this.setBlendMode(1);
         this.setDepth(10);

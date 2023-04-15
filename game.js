@@ -267,6 +267,7 @@ class Survivor extends Phaser.Scene
           dot.setTexture('coin');
           dot.setScale(2);
           dot.setSize(8, 8);
+          dot.play('coin-idle');
           dot.soundKey = 'pm-dot-hit';
           dot.value = 1;
         }
@@ -281,6 +282,13 @@ class Survivor extends Phaser.Scene
       this.dots = this.physics.add.group({
         classType: Dot,
         maxSize: 100
+      });
+
+      this.anims.create({
+        key: 'coin-idle',
+        frames: 'coin',
+        frameRate: 7,
+        repeat: -1
       });
 
       this.physics.add.collider(this.player, this.dots, null, function (playerObj, dotObj) {
